@@ -2,19 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { User } from './user.model'
 
-
-// type UserEdit = {
-
-
-//   firstName: string;
-//   middleName?: string;
-//   lastName: string;
-//   email: string;
-//   phoneNumber: string;
-//   role: string;
-//   address: string;
-//   customerName: string;
-// }
 type Response = {
   message: string;
 }
@@ -24,7 +11,7 @@ type Response = {
 })
 export class HttpRequestService {
 
-  baseURL = 'http://localhost:3000/api/';
+  baseURL = 'http://localhost:3000/users/';
   constructor(private http: HttpClient) {
 
   }

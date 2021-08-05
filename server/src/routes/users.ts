@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import db from '../../db/models'
 const router = express.Router();
-//type of data recieved from client
+
 type User = {
 
     firstName: string;
@@ -13,17 +13,6 @@ type User = {
     address: string;
     customerName: string;
 }
-//type of data inserted/retrived from server in user table
-type ServerUser={
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    roleId: number; 
-    address: string;
-    customerId: number;
-}
 
 //SENDS ALL MEMBERS
 router.get("/", (req: Request, res: Response) => {
@@ -32,9 +21,6 @@ router.get("/", (req: Request, res: Response) => {
         include: [{ model: db.Customer, required: true, as: 'customer' }]
     }).then((result: any) => {
 
-        // console.log(result)
-
-        // console.log(result[0].dataValues.customer.name)
         let returnObject: User[] = [];
         for (let i = 0; i < result.length; i++) {
             const customerName = result[i].dataValues.customer.name
@@ -55,7 +41,6 @@ router.get("/", (req: Request, res: Response) => {
 
         res.status(200).json(returnObject)
     }).catch((err: any) => {
-        console.log(err)
         res.status(500).json({ message: 'Unexpected Error Occured !' })
     })
 
@@ -65,7 +50,7 @@ router.get("/", (req: Request, res: Response) => {
 router.put("/:id", (req: Request, res: Response) => {
 
     let id = +req.params.id;
-    const editUser:User= {
+    const editUser: User = {
 
         firstName: req.body.firstName,
         middleName: req.body.middleName,
@@ -78,19 +63,22 @@ router.put("/:id", (req: Request, res: Response) => {
 
 
     }
-    if (!editUser.firstName || !editUser.lastName || !editUser.email || !editUser.phoneNumber || !editUser.role || !editUser.address) {
+    if (!editUser.firstName || !editUser.lastName || !editUser.email || !editUser.phoneNumber || editUser.role<1||editUser.role>3 || !editUser.address) {
         res.status(400).json({ message: `Give Correct Input` })
     }
     else if (editUser.phoneNumber.length !== 10) {
-        res.status(400).json({ message: `Give Correct Input` })
+        res.status(400).json({ message: `Phone Number must be of 10 digits` })
     }
     else {
+        
         db.Role.findAll({
             where: {
                 id: editUser.role
             }
         }).then((result: any) => {
+           
             if (result.length == 0) {
+                //400 - client error - sent invalid role
                 res.status(400).json({ message: `Role does not exist` })
             }
 
@@ -104,18 +92,19 @@ router.put("/:id", (req: Request, res: Response) => {
                     name: editUser.customerName
                 }
             }).then((result: any) => {
+                //400 - client error - sent invalid customer
                 if (result.length == 0) {
                     res.status(400).json({ message: `Customer does not exist` })
                 }
                 else {
                     customerId = result[0].id;
-                    // console.log(customerId)
+                   
                 }
 
             }).then(() => {
 
                 //object to be updated into db
-                const updateObject:ServerUser = {
+                const updateObject = {
                     firstName: editUser.firstName,
                     middleName: editUser.middleName,
                     lastName: editUser.lastName,
@@ -134,15 +123,16 @@ router.put("/:id", (req: Request, res: Response) => {
                 }).then((message: any) => {
 
                     res.status(200).json({ message: `User with id ${id} edited Successfully !`, updatedRecord: message[1].dataValues })
-                    console.log(message)
+                    
                 }).catch((err: any) => {
-                    console.log(err)
+                
                     res.status(500).json({ message: `${err}` })
 
                 });
 
             })
         }).catch((err: any) => {
+            console.log(err)
             res.status(500).json({ message: `${err}` })
         }
 
@@ -163,7 +153,8 @@ router.delete("/:id", (req: Request, res: Response) => {
             res.status(200).json({ message: `User with id ${id} deleted Successfully!` })
         }
         else {
-            res.status(400).json({ message: `User with id ${id} does not exist` })
+            //404-not found
+            res.status(404).json({ message: `User with id ${id} does not exist` })
         }
     }
     ).catch(() => {
@@ -191,14 +182,25 @@ router.post("/", (req: Request, res: Response) => {
     }
 
 
-    if (!newMember.firstName || !newMember.lastName || !newMember.email || !newMember.phoneNumber || !newMember.role|| !newMember.address) {
+    if (!newMember.firstName || !newMember.lastName || !newMember.email || !newMember.phoneNumber || newMember.role<1||newMember.role>3 || !newMember.address) {
         res.status(400).json({ message: `Give Correct Input` })
     }
     else if (newMember.phoneNumber.length !== 10) {
         res.status(400).json({ message: `Give Correct Input` })
     }
     else {
-
+        //check if user already exists
+        db.User.findAll({
+            where: {
+                phoneNumber: newMember.phoneNumber
+            }
+        }).then((result: any) => {
+            if (result.length != 0) {
+                //400 - client error - sent invalid user info
+                res.status(400).json({ message: `User already exists` })
+                return
+            }
+        })
         //Server side check for role
         db.Role.findAll({
             where: {
@@ -206,7 +208,9 @@ router.post("/", (req: Request, res: Response) => {
             }
         }).then((result: any) => {
             if (result.length == 0) {
+                //400 - client error - sent invalid role
                 res.status(400).json({ message: `Role does not exist` })
+                return
             }
 
         }).then(() => {
@@ -220,17 +224,17 @@ router.post("/", (req: Request, res: Response) => {
                 }
             }).then((result: any) => {
                 if (result.length == 0) {
+                    //400 - client error - sent invalid customer
                     res.status(400).json({ message: `Customer does not exist` })
                 }
                 else {
                     customerId = result[0].id;
-                    // console.log(customerId)
                 }
 
             }).then(() => {
 
                 //object to be inserted into db
-                const insertObject:ServerUser = {
+                const insertObject = {
                     firstName: newMember.firstName,
                     middleName: newMember.middleName,
                     lastName: newMember.lastName,
@@ -245,10 +249,8 @@ router.post("/", (req: Request, res: Response) => {
 
                 db.User.create(insertObject).then((message: any) => {
 
-                    res.status(200).json({ message: `User added Successfully !`, addedRecord: message.dataValues })
-                    // console.log(message)
+                    res.status(201).json({ message: `User added Successfully !`, addedRecord: message.dataValues })
                 }).catch((err: any) => {
-                    // console.log(err)
                     res.status(500).json({ message: `${err}` })
 
                 });

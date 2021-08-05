@@ -19,7 +19,9 @@ export class RowComponent implements OnInit {
   @Output() mode = new EventEmitter<{ editable: boolean }>();
   
  
-  constructor(private httpService: HttpRequestService) { }
+  constructor(private httpService: HttpRequestService) { 
+    
+  }
 
   ngOnInit(): void {
     this.mode.subscribe(modeObject => {
@@ -37,17 +39,15 @@ export class RowComponent implements OnInit {
 
   deleteRow() {
     this.httpService.delete(this.user.id).subscribe(response => {
-      // console.log(response)
       alert(response.message)
 
     }, error => {
-      console.log(error)
       alert(error.error.message)
     })
   }
 
   editRow() {
-    
+    this.editSelectedRole=this.user.role
     this.mode.emit({ editable: true })
   }
   cancelRow(){
@@ -67,11 +67,11 @@ export class RowComponent implements OnInit {
     let customerName =(<HTMLTableElement>document.getElementById(`row${this.rowNumber}CustomerName`)).innerHTML;
     
     let updatedData:User={id:+id,firstName:firstName,middleName:middleName, lastName:lastName, email:email, phoneNumber:phoneNumber, role:roleId,address:address,customerName:customerName}
-    console.log(updatedData)
+ 
     this.httpService.edit(this.user.id,updatedData).subscribe(response=>{
       alert(response.message + "\nRefresh to see Changes !")
     }, error => {
-      console.log(error)
+    
       alert(error.error.message)
       
     })

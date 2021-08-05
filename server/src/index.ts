@@ -28,4 +28,4 @@ db.sequelize.sync({force:true}).then(() => {
 })
 
 // define a route handler 
-app.use('/api', require('./routes/api.js'));
+app.use('/users', require('./routes/users.js'));
