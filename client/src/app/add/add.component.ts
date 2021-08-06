@@ -28,26 +28,16 @@ export class AddComponent implements OnInit {
     customerName: ['', [Validators.required]]
   })
   onSubmit() {
-    if ((this.addUserForm.value.role).toUpperCase === 'SUPERADMIN') {
-      this.addUserForm.value.role = Role.SUPERADMIN;
-    }
-    else if ((this.addUserForm.value.role).toUpperCase === 'ADMIN') {
-      this.addUserForm.value.role = Role.ADMIN;
-    }
-    else {
-      this.addUserForm.value.role = Role.SUBSCRIBER;
-    }
+
     this.httpService.post(this.addUserForm.value).subscribe(response => {
       alert(response.message + "\nSee Show Users to see Changes !")
     }, error => {
-      console.log(error)
+
       alert(error.error.message)
 
     })
-    console.log(this.addUserForm)
   }
   display(item: any) {
-    console.log(item)
     if (Number.isInteger(item.value))
       return true;
     else
