@@ -36,15 +36,14 @@ export class TableComponent implements OnInit{
     ngOnInit(): void{
 
         this.getUsers();
-        console.log("inside ngoninit table")
        
     }
     getUsers() {
 
         this.httpRequestService.get().subscribe(response => {
-            console.log(response);
+         
             this.users=response;
-            console.log(this.users)
+       
             this.usersDisplay = true;
         }, error => {
             console.log(error);
@@ -57,7 +56,6 @@ export class TableComponent implements OnInit{
     
     changeDisplay(eventobj:{disabled:boolean,id:number})
     {
-        console.log(eventobj)
         //makes selected row noneditable/editable
         if(eventobj.disabled==true)
         this.editableRowId=eventobj.id=-1;

@@ -17,7 +17,6 @@ export const environment = {
   
 };
 `;
-console.log("here")
 // write the content to the respective file
 writeFile(targetPath, environmentFileContent, function (err:any) {
    if (err) {
